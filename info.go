@@ -367,3 +367,91 @@ func ActivePeersStats() ([]interface{}, error) {
 	result := retpre["i2p.router.netdb.activepeers.stats"].([]interface{})
 	return result, nil
 }
+
+// PrivateAddressBook gets the list of private address book entries
+func PrivateAddressBook() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.addressbook.private.list": nil,
+		"Token":                               token,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return retpre["i2p.router.addressbook.private.list"].([]interface{}), nil
+}
+
+// LocalAddressBook gets the list of local address book entries
+func LocalAddressBook() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.addressbook.local.list": nil,
+		"Token":                             token,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return retpre["i2p.router.addressbook.local.list"].([]interface{}), nil
+}
+
+// RouterAddressBook gets the list of router address book entries
+func RouterAddressBook() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.addressbook.router.list": nil,
+		"Token":                              token,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return retpre["i2p.router.addressbook.router.list"].([]interface{}), nil
+}
+
+// PublishedAddressBook gets the list of published address book entries
+func PublishedAddressBook() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.addressbook.published.list": nil,
+		"Token":                                 token,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return retpre["i2p.router.addressbook.published.list"].([]interface{}), nil
+}
+
+// AddressBookConfig gets the address book configuration, including the path and entries
+func AddressBookConfig() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.addressbook.config": nil,
+		"Token":                         token,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	raw := retpre["i2p.router.addressbook.config"].(map[string]interface{})
+	path := raw["path"]
+	entries := raw["entries"]
+
+	pathAndEntries := []interface{}{path, entries}
+
+	return pathAndEntries, nil
+}
+
+// AddressBookSubscriptions gets the address book subscriptions, including the path and entries
+func AddressBookSubscriptions() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.addressbook.subscriptions": nil,
+		"Token":                                token,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	raw := retpre["i2p.router.addressbook.subscriptions"].(map[string]interface{})
+	path := raw["path"]
+	entries := raw["entries"]
+
+	pathAndEntries := []interface{}{path, entries}
+
+	return pathAndEntries, nil
+}
