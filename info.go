@@ -262,6 +262,68 @@ func OutboundExploratoryTunnels() (int, error) {
 	return result, nil
 }
 
+// ExploratoryTunnelsInfo gets the exploratory tunnels info
+func ExploratoryTunnelsInfo() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.net.tunnels.exploratory.info.list": nil,
+		"Token": token,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return retpre["i2p.router.net.tunnels.exploratory.info.list"].([]interface{}), nil
+}
+
+// ClientTunnelsInfo gets the client tunnels info
+func ClientTunnelsInfo() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.net.tunnels.client.info.list": nil,
+		"Token": token,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return retpre["i2p.router.net.tunnels.client.info.list"].([]interface{}), nil
+}
+
+// ShareRatio gets the share ratio of the router
+func ShareRatio() (int, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.net.tunnels.shareratio": nil,
+		"Token":                             token,
+	})
+	if err != nil {
+		return -1, err
+	}
+	result := int(retpre["i2p.router.net.tunnels.shareratio"].(float64))
+	return result, nil
+}
+
+// ParticipatingTunnelsCount gets the number of participating tunnels (inactive + active)
+func ParticipatingTunnelsCount() (int, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.net.tunnels.participating": nil,
+		"Token":                                token,
+	})
+	if err != nil {
+		return -1, err
+	}
+	result := int(retpre["i2p.router.net.tunnels.participating"].(float64))
+	return result, nil
+}
+
+// ParticipatingTunnelsInfo gets the participating tunnels info
+func ParticipatingTunnelsInfo() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.net.tunnels.participating.info": nil,
+		"Token": token,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return retpre["i2p.router.net.tunnels.participating.info"].([]interface{}), nil
+}
+
 // InboundClientTunnels gets the number of inbound client tunnels
 func InboundClientTunnels() (int, error) {
 	retpre, err := Call("RouterInfo", map[string]interface{}{
