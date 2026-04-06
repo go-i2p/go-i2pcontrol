@@ -287,7 +287,7 @@ func ClientTunnelsInfo() ([]interface{}, error) {
 }
 
 // ShareRatio gets the share ratio of the router
-func ShareRatio() (int, error) {
+func ShareRatio() (float64, error) {
 	retpre, err := Call("RouterInfo", map[string]interface{}{
 		"i2p.router.net.tunnels.shareratio": nil,
 		"Token":                             token,
@@ -295,8 +295,7 @@ func ShareRatio() (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	result := int(retpre["i2p.router.net.tunnels.shareratio"].(float64))
-	return result, nil
+	return retpre["i2p.router.net.tunnels.shareratio"].(float64), nil
 }
 
 // ParticipatingTunnelsCount gets the number of participating tunnels (inactive + active)
