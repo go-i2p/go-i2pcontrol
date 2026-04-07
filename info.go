@@ -113,6 +113,32 @@ func OutgoingBw() (int, error) {
 	return result, nil
 }
 
+// TotalOutgoingBW total outgoing bandwidth
+func TotalOutgoingBW() (int, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.net.bw.used.outbound.total": nil,
+		"Token":                                 token,
+	})
+	if err != nil {
+		return -1, err
+	}
+	result := int(retpre["i2p.router.net.bw.used.outbound.total"].(float64))
+	return result, nil
+}
+
+// TotalIncomingBW total incoming bandwidth
+func TotalIncomingBW() (int, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.net.bw.used.inbound.total": nil,
+		"Token":                                token,
+	})
+	if err != nil {
+		return -1, err
+	}
+	result := int(retpre["i2p.router.net.bw.used.inbound.total"].(float64))
+	return result, nil
+}
+
 // UpTime of the router
 func UpTime() (int64, error) {
 	retpre, err := Call("RouterInfo", map[string]interface{}{
@@ -234,6 +260,67 @@ func OutboundExploratoryTunnels() (int, error) {
 
 	result := int(retpre["i2p.router.net.tunnels.exploratory.outbound"].(float64))
 	return result, nil
+}
+
+// ExploratoryTunnelsInfo gets the exploratory tunnels info
+func ExploratoryTunnelsInfo() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.net.tunnels.exploratory.info.list": nil,
+		"Token": token,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return retpre["i2p.router.net.tunnels.exploratory.info.list"].([]interface{}), nil
+}
+
+// ClientTunnelsInfo gets the client tunnels info
+func ClientTunnelsInfo() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.net.tunnels.client.info.list": nil,
+		"Token": token,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return retpre["i2p.router.net.tunnels.client.info.list"].([]interface{}), nil
+}
+
+// ShareRatio gets the share ratio of the router
+func ShareRatio() (float64, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.net.tunnels.shareratio": nil,
+		"Token":                             token,
+	})
+	if err != nil {
+		return -1, err
+	}
+	return retpre["i2p.router.net.tunnels.shareratio"].(float64), nil
+}
+
+// ParticipatingTunnelsCount gets the number of participating tunnels (inactive + active)
+func ParticipatingTunnelsCount() (int, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.net.tunnels.participating": nil,
+		"Token":                                token,
+	})
+	if err != nil {
+		return -1, err
+	}
+	result := int(retpre["i2p.router.net.tunnels.participating"].(float64))
+	return result, nil
+}
+
+// ParticipatingTunnelsInfo gets the participating tunnels info
+func ParticipatingTunnelsInfo() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.net.tunnels.participating.info": nil,
+		"Token": token,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return retpre["i2p.router.net.tunnels.participating.info"].([]interface{}), nil
 }
 
 // InboundClientTunnels gets the number of inbound client tunnels
@@ -366,4 +453,92 @@ func ActivePeersStats() ([]interface{}, error) {
 
 	result := retpre["i2p.router.netdb.activepeers.stats"].([]interface{})
 	return result, nil
+}
+
+// PrivateAddressBook gets the list of private address book entries
+func PrivateAddressBook() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.addressbook.private.list": nil,
+		"Token":                               token,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return retpre["i2p.router.addressbook.private.list"].([]interface{}), nil
+}
+
+// LocalAddressBook gets the list of local address book entries
+func LocalAddressBook() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.addressbook.local.list": nil,
+		"Token":                             token,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return retpre["i2p.router.addressbook.local.list"].([]interface{}), nil
+}
+
+// RouterAddressBook gets the list of router address book entries
+func RouterAddressBook() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.addressbook.router.list": nil,
+		"Token":                              token,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return retpre["i2p.router.addressbook.router.list"].([]interface{}), nil
+}
+
+// PublishedAddressBook gets the list of published address book entries
+func PublishedAddressBook() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.addressbook.published.list": nil,
+		"Token":                                 token,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return retpre["i2p.router.addressbook.published.list"].([]interface{}), nil
+}
+
+// AddressBookConfig gets the address book configuration, including the path and entries
+func AddressBookConfig() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.addressbook.config": nil,
+		"Token":                         token,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	raw := retpre["i2p.router.addressbook.config"].(map[string]interface{})
+	path := raw["path"]
+	entries := raw["entries"]
+
+	pathAndEntries := []interface{}{path, entries}
+
+	return pathAndEntries, nil
+}
+
+// AddressBookSubscriptions gets the address book subscriptions, including the path and entries
+func AddressBookSubscriptions() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.addressbook.subscriptions": nil,
+		"Token":                                token,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	raw := retpre["i2p.router.addressbook.subscriptions"].(map[string]interface{})
+	path := raw["path"]
+	entries := raw["entries"]
+
+	pathAndEntries := []interface{}{path, entries}
+
+	return pathAndEntries, nil
 }
