@@ -542,3 +542,14 @@ func AddressBookSubscriptions() ([]interface{}, error) {
 
 	return pathAndEntries, nil
 }
+
+func HiddenServices() ([]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.net.tunnels.i2ptunnel": nil,
+		"Token":                            token,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return retpre["i2p.router.net.tunnels.i2ptunnel"].([]interface{}), nil
+}
