@@ -1,6 +1,18 @@
 package i2pcontrol
 
-type HiddenService struct{}
+// Going to need different fields for each type of service, but for now just a placeholder struct
+// maybe an interface? Could help solve the problem of different types of services?
+
+type CommonConfig struct {
+	Name        string
+	Description string
+	AutoStart   bool
+	SSL         bool
+}
+
+type ServiceConfig struct{}
+
+type ClientConfig struct{}
 
 // ServiceAction performs an action on a tunnel.
 func ServiceAction(name, action string, toAll bool) (string, map[string]interface{}, error) {
@@ -23,6 +35,11 @@ func ServiceAction(name, action string, toAll bool) (string, map[string]interfac
 	return result, tunnelOptions, nil
 }
 
-func AddHiddenService(service HiddenService) (string, error) {
+// AddHiddenService creates a new hidden service.
+func AddHiddenService(service ServiceConfig) (string, error) {
+	return "", nil
+}
+
+func AddClientTunnel(client ClientConfig) (string, error) {
 	return "", nil
 }
