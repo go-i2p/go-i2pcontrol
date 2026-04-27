@@ -11,7 +11,6 @@ type TunnelOptions struct {
 	Variance int // -2 to 2
 	Quantity int
 	Backup   int
-	Profile  string // (interactive or default)
 
 	// possibly another struct for the following fields?
 	ReduceIdle   bool
@@ -30,16 +29,85 @@ type CommonConfig struct {
 	Type           string
 	CustomOptions  string
 	PrivateKeyFile string
-	TunnelSettings TunnelOptions
+	TunnelSettings *TunnelOptions
 }
 
-type ServiceConfig struct {
+type SOCKSConfig struct {
+	OutProxyType string
+	OutProxies   string // HTTP, SOCKS, CONNECT
+	Auth         *Authentication
+}
+
+type CONNECTConfig struct {
+	OutProxies string // HTTP, SOCKS, CONNECT
+	Auth       *Authentication
+}
+
+type HTTPFiltering struct {
+	SpoofUserAgent     bool
+	BlockAcceptHeaders bool
+	BlockReferers      bool
+	AllowSSLI2P        bool
+}
+
+type HTTPConfig struct {
+	Filtering  *HTTPFiltering
+	Auth       *Authentication
+	OutProxies string // HTTP, SOCKS, CONNECT
+
+	SSLOutProxies string
+	JumpURLs      string
+}
+
+type STREAMRConfig struct {
+	TargetHost        string
+	TargetDestination string
+}
+
+type IRCConfig struct {
+	EnableDCC bool
+}
+
+type ProfileConfig struct {
+	Profile      string // (interactive or default)
+	DelayConnect bool
+}
+
+type Authentication struct {
+	RequireLocalAuth     bool
+	LocalAuthUsername    string
+	LocalAuthPassword    string
+	RequireOutProxyAuth  bool
+	OutProxyAuthUsername string
+	OutProxyAuthPassword string
+}
+
+type ClientConfig struct {
 	CommonSettings CommonConfig
 	ReachableBy    string
-	TargetHost     string // ONLY FOR STREAMR TUNNELS -- need to test this some more
+	SharedClient   bool
+	DelayOpen      bool
+
+	TunnelDestination string
+
+	// close when idle section - maybe make struct later
+	CloseWhenIdle bool
+	IdlePeriod    int
+	NewKeysOnOpen bool
+
+	// persistent private keys section
+
+	GenerateKeys bool // when this is true, NewKeysOnOpen becomes null / ignored
+
+	ProfileConfig *ProfileConfig
+	CONNECTConfig *CONNECTConfig
+	HTTPConfig    *HTTPConfig
+	SOCKSConfig   *SOCKSConfig
+	STREAMRConfig *STREAMRConfig
+	IRCConfig     *IRCConfig
 }
 
-type ClientConfig struct{}
+type ServiceConfig struct{}
 
 // TODO: When a function is stopped, for some services we may need to set destination and b32 dest to null
 
@@ -65,7 +133,9 @@ func ServiceAction(name, action string, toAll bool) (string, map[string]interfac
 }
 
 // AddHiddenService creates a new hidden service.
-func AddHiddenService(service ServiceConfig) (string, error) {
+func AddClientTunnel(service ClientConfig) (string, error) {
+	// Going to add a bunch of
+
 	retpre, err := Call("TunnelManager", map[string]interface{}{
 		"Action":      "create",
 		"Name":        service.CommonSettings.Name,
@@ -82,7 +152,7 @@ func AddHiddenService(service ServiceConfig) (string, error) {
 		"TunnelVariance":       service.CommonSettings.TunnelSettings.Variance,
 		"TunnelQuantity":       service.CommonSettings.TunnelSettings.Quantity,
 		"TunnelBackupQuantity": service.CommonSettings.TunnelSettings.Backup,
-		"Profile":              service.CommonSettings.TunnelSettings.Profile,
+		//"Profile":              service.ProfileConfig.Profile,
 		//"Reduce":               service.CommonSettings.TunnelSettings.ReduceIdle,
 		"ReduceCount": service.CommonSettings.TunnelSettings.ReducedCount,
 		"ReducedTime": service.CommonSettings.TunnelSettings.IdleTime,
@@ -97,6 +167,6 @@ func AddHiddenService(service ServiceConfig) (string, error) {
 	return result, nil
 }
 
-func AddClientTunnel(client ClientConfig) (string, error) {
+func AddHiddenService(client ClientConfig) (string, error) {
 	return "", nil
 }
