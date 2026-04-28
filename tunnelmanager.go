@@ -29,7 +29,6 @@ type CommonConfig struct {
 	Port           int
 	Type           string
 	CustomOptions  string
-	PrivateKeyFile string
 	ReduceIdle     bool
 	ReducedCount   int
 	IdleTime       int
@@ -78,7 +77,7 @@ type IRCConfig struct {
 
 type ProfileConfig struct {
 	Profile      string // (interactive or default)
-	DelayConnect bool
+	ConnectDelay bool
 }
 
 type Authentication struct {
@@ -104,6 +103,7 @@ type ClientConfig struct {
 	NewKeysOnOpen bool
 
 	// persistent private keys section
+	PersistentPrivateKeyFile string
 
 	GenerateKeys bool // when this is true, NewKeysOnOpen becomes null / ignored
 
@@ -144,11 +144,11 @@ type PostLimitConfig struct {
 }
 
 type TunnelAccessControlConfig struct {
-	AccessList            string
-	AccessListDescription string
-	AccessListFile        string
-	UniquePerClient       bool
-	MultiHoming           bool
+	AccessOption    string
+	AccessList      string
+	AccessListFile  string
+	UniquePerClient bool
+	MultiHoming     bool
 }
 
 type HTTPServerConfig struct {
@@ -160,17 +160,24 @@ type HTTPServerConfig struct {
 	BlockAccessInProxies bool
 }
 
+type HTTPBidirConfig struct {
+	HTTPServerConfig HTTPServerConfig
+	ReachableBy      string
+}
+
 type ServiceConfig struct {
 	CommonSettings            CommonConfig
 	LeaseSetConfig            LeaseSetConfig
 	ServerThrottling          ServerThrottling
 	TunnelAccessControlConfig TunnelAccessControlConfig
-	PrivateFileKey            string
+	PrivateKeyFile            string
 	Host                      string
-	LeaseSetEnc               string
+	TargetPort                int
 	Profile                   string // (Used for everything besides STREAMR)
+	ConnectDelay              bool
 	STREAMRServerConfig       *STREAMRServerConfig
 	HTTPServerConfig          *HTTPServerConfig
+	HTTPBidirConfig           *HTTPBidirConfig // TODO: refactor
 }
 
 // TODO: When a function is stopped, for some services we may need to set destination and b32 dest to null
@@ -198,6 +205,8 @@ func ServiceAction(name, action string, toAll bool) (string, map[string]interfac
 
 // AddClientTunnel creates a new hidden service.
 func AddClientTunnel(client ClientConfig) (string, error) {
+	isStreamrClient := client.CommonSettings.Type == "streamrclient"
+
 	params := map[string]interface{}{
 		"Action":      "create",
 		"Name":        client.CommonSettings.Name,
@@ -205,8 +214,8 @@ func AddClientTunnel(client ClientConfig) (string, error) {
 		"UseSSL":      client.CommonSettings.SSL,
 		"Port":        client.CommonSettings.Port,
 		"Type":        client.CommonSettings.Type,
-		"Shared":      client.SharedClient,
-		"DelayOpen":   client.DelayOpen,
+		"Shared":      client.SharedClient && !isStreamrClient,
+		"DelayOpen":   client.DelayOpen && !isStreamrClient,
 		"Close":       client.CloseWhenIdle,
 	}
 
@@ -216,6 +225,7 @@ func AddClientTunnel(client ClientConfig) (string, error) {
 		}
 	}
 
+	// this can be a problem if a user wants to set something to 0, but for testing lets leave this
 	addInt := func(key string, value int) {
 		if value != 0 {
 			params[key] = value
@@ -238,7 +248,8 @@ func AddClientTunnel(client ClientConfig) (string, error) {
 
 	addString("Description", client.CommonSettings.Description)
 	addString("CustomOptions", client.CommonSettings.CustomOptions)
-	addString("PrivKeyFile", client.CommonSettings.PrivateKeyFile)
+	addString("PrivKeyFile", client.PersistentPrivateKeyFile)
+
 	addString("ReachableBy", client.ReachableBy)
 	addString("TargetDestination", client.TunnelDestination)
 	addInt("CloseTime", client.IdlePeriod)
@@ -251,7 +262,10 @@ func AddClientTunnel(client ClientConfig) (string, error) {
 		params["PersistentClientKey"] = false
 	} else if client.NewKeysOnOpen {
 		params["NewDest"] = 1
-	} else if client.CommonSettings.PrivateKeyFile != "" {
+	} else if client.PersistentPrivateKeyFile != "" &&
+		client.CommonSettings.Type != "httpclient" &&
+		client.CommonSettings.Type != "connectclient" &&
+		client.CommonSettings.Type != "streamrclient" {
 		params["NewDest"] = 2
 		params["PersistentClientKey"] = true
 	}
@@ -274,7 +288,7 @@ func AddClientTunnel(client ClientConfig) (string, error) {
 
 	if profile := client.ProfileConfig; profile != nil {
 		addString("Profile", profile.Profile)
-		params["ConnectDelay"] = profile.DelayConnect
+		params["ConnectDelay"] = profile.ConnectDelay
 	}
 
 	if connect := client.CONNECTConfig; connect != nil {
@@ -324,6 +338,113 @@ func AddClientTunnel(client ClientConfig) (string, error) {
 	return result, nil
 }
 
-func AddHiddenService(client ClientConfig) (string, error) {
-	return "", nil
+func AddHiddenService(service ServiceConfig) (string, error) {
+	params := map[string]interface{}{
+		"Action":      "create",
+		"Name":        service.CommonSettings.Name,
+		"StartOnLoad": service.CommonSettings.AutoStart,
+		"UseSSL":      service.CommonSettings.SSL,
+		"Port":        service.CommonSettings.Port,
+		"Type":        service.CommonSettings.Type,
+		"Reduce":      service.CommonSettings.ReduceIdle,
+	}
+
+	addString := func(key, value string) {
+		if value != "" {
+			params[key] = value
+		}
+	}
+
+	addInt := func(key string, value int) {
+		if value != 0 {
+			params[key] = value
+		}
+	}
+
+	addString("Description", service.CommonSettings.Description)
+	addString("CustomOptions", service.CommonSettings.CustomOptions)
+	addString("PrivKeyFile", service.PrivateKeyFile)
+	addString("TargetHost", service.Host)
+	addString("Profile", service.Profile)
+	params["ConnectDelay"] = service.ConnectDelay
+
+	addInt("TargetPort", service.TargetPort)
+	addInt("ReduceCount", service.CommonSettings.ReducedCount)
+	addInt("ReduceTime", service.CommonSettings.IdleTime)
+
+	if tunnelLength := service.CommonSettings.TunnelLength; tunnelLength != nil {
+		addInt("TunnelLength", tunnelLength.Length)
+		addInt("TunnelVariance", tunnelLength.Variance)
+	}
+
+	if tunnelQuantity := service.CommonSettings.TunnelQuantity; tunnelQuantity != nil {
+		addInt("TunnelQuantity", tunnelQuantity.Quantity)
+		addInt("TunnelBackupQuantity", tunnelQuantity.Backup)
+	}
+
+	if tunnelCrypto := service.CommonSettings.TunnelCrypto; tunnelCrypto != nil {
+		addString("SigType", tunnelCrypto.SigType)
+		addString("EncType", tunnelCrypto.EncType)
+	}
+
+	addString("EncryptLeaseSet", service.LeaseSetConfig.LeaseSetEnc)
+	addString("OptionalLookup", service.LeaseSetConfig.LeaseSetPassword)
+
+	addInt("MaxConcurrentConns", service.ServerThrottling.MaxConcurrentConnections)
+	addInt("ClientPerMinute", service.ServerThrottling.PerClientMinuteLimit)
+	addInt("ClientPerHour", service.ServerThrottling.PerClientHourLimit)
+	addInt("ClientPerDay", service.ServerThrottling.PerClientDayLimit)
+	addInt("TotalInPerMinute", service.ServerThrottling.TotalPerMinuteLimit)
+	addInt("TotalInPerHour", service.ServerThrottling.TotalPerHourLimit)
+	addInt("TotalInPerDay", service.ServerThrottling.TotalPerDayLimit)
+
+	addString("AccessOption", service.TunnelAccessControlConfig.AccessOption)
+	addString("AccessList", service.TunnelAccessControlConfig.AccessList)
+	addString("FilterFilePath", service.TunnelAccessControlConfig.AccessListFile)
+	params["UniqueLocalAddressPerClient"] = service.TunnelAccessControlConfig.UniquePerClient
+	params["MultiHoming"] = service.TunnelAccessControlConfig.MultiHoming
+
+	if streamr := service.STREAMRServerConfig; streamr != nil {
+		addString("ReachableBy", streamr.ReachableBy)
+	}
+
+	if http := service.HTTPServerConfig; http != nil {
+		addString("WebsiteHostname", http.WebHost)
+		params["BlockReferers"] = http.BlockReferers
+		params["BlockUserAgents"] = http.BlockUserAgents
+		params["BlockAccessInProxies"] = http.BlockAccessInProxies
+		addString("UserAgents", http.UserAgents)
+
+		addInt("PostLimit", http.POSTLimitConfig.POSTLimit)
+		addInt("PostLimitTime", http.POSTLimitConfig.ClientBanDuration)
+		addInt("PerClientPeriod", http.POSTLimitConfig.ClientPerPeriod)
+		addInt("TotalPeriod", http.POSTLimitConfig.TotalPerPeriod)
+		addInt("TotalBanTime", http.POSTLimitConfig.TotalBanDuration)
+	}
+
+	// refactor into one
+	if httpBidir := service.HTTPBidirConfig; httpBidir != nil {
+		addString("ReachableBy", httpBidir.ReachableBy)
+
+		http := httpBidir.HTTPServerConfig
+		addString("WebsiteHostname", http.WebHost)
+		params["BlockReferers"] = http.BlockReferers
+		params["BlockUserAgents"] = http.BlockUserAgents
+		params["BlockAccessInProxies"] = http.BlockAccessInProxies
+		addString("UserAgents", http.UserAgents)
+
+		addInt("PostLimit", http.POSTLimitConfig.POSTLimit)
+		addInt("PostLimitTime", http.POSTLimitConfig.ClientBanDuration)
+		addInt("PerClientPeriod", http.POSTLimitConfig.ClientPerPeriod)
+		addInt("TotalPeriod", http.POSTLimitConfig.TotalPerPeriod)
+		addInt("TotalBanTime", http.POSTLimitConfig.TotalBanDuration)
+	}
+
+	retpre, err := Call("TunnelManager", params)
+	if err != nil {
+		return "", err
+	}
+
+	result := retpre["status"].(string)
+	return result, nil
 }
