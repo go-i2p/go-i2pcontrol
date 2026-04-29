@@ -199,10 +199,9 @@ func ServiceAction(name, action string, toAll bool) (string, map[string]interfac
 	}
 	var tunnelOptions map[string]interface{}
 	result := retpre["status"].(string)
-
-	// a get action returns the tunnel options, this is the only action that returns them
+	// a get action returns the tunnel options; this is the only action that returns them
 	if action == "get" {
-		tunnelOptions = retpre["i2p.router.net.tunnels.i2ptunnel.options"].(map[string]interface{})
+		tunnelOptions = retpre["info"].(map[string]interface{})
 	}
 
 	return result, tunnelOptions, nil
