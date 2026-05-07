@@ -504,5 +504,7 @@ func setClientParams(client ClientConfig, params map[string]interface{}) {
 func addString(params map[string]interface{}, key, value string) {
 	if value != "" {
 		params[key] = value
+	} else {
+		delete(params, key)
 	}
 }
