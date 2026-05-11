@@ -441,6 +441,18 @@ func AllPeersInfo() ([]string, error) {
 	return result, nil
 }
 
+func NewsEntries() (string, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.news": nil,
+		"Token":           token,
+	})
+	if err != nil {
+		return "", err
+	}
+	result := retpre["i2p.router.news"].(string)
+	return result, nil
+}
+
 // ActivePeersStats gets detailed live stats for all active peer connections
 func ActivePeersStats() ([]interface{}, error) {
 	retpre, err := Call("RouterInfo", map[string]interface{}{
