@@ -453,6 +453,17 @@ func NewsEntries() (string, error) {
 	return result, nil
 }
 
+func BannedPeers() (map[string]interface{}, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.netdb.bannedpeers": nil,
+		"Token":                        token,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return retpre["i2p.router.netdb.bannedpeers"].(map[string]interface{}), nil
+}
+
 // ActivePeersStats gets detailed live stats for all active peer connections
 func ActivePeersStats() ([]interface{}, error) {
 	retpre, err := Call("RouterInfo", map[string]interface{}{
