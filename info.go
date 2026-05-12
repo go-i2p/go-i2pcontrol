@@ -441,6 +441,33 @@ func AllPeersInfo() ([]string, error) {
 	return result, nil
 }
 
+// NTCPLimit gets the NTCP limit
+func NTCPLimit() (int, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.netdb.ntcp.limit": nil,
+		"Token":                       token,
+	})
+	if err != nil {
+		return -1, err
+	}
+	result := int(retpre["i2p.router.netdb.ntcp.limit"].(float64))
+	return result, nil
+}
+
+// SSULimit gets the SSU limit
+func SSULimit() (int, error) {
+	retpre, err := Call("RouterInfo", map[string]interface{}{
+		"i2p.router.netdb.ssu.limit": nil,
+		"Token":                      token,
+	})
+	if err != nil {
+		return -1, err
+	}
+	result := int(retpre["i2p.router.netdb.ssu.limit"].(float64))
+	return result, nil
+}
+
+// NewsEntries gets the latest news entries
 func NewsEntries() (string, error) {
 	retpre, err := Call("RouterInfo", map[string]interface{}{
 		"i2p.router.news": nil,
@@ -453,6 +480,7 @@ func NewsEntries() (string, error) {
 	return result, nil
 }
 
+// BannedPeers gets the banned peers
 func BannedPeers() (map[string]interface{}, error) {
 	retpre, err := Call("RouterInfo", map[string]interface{}{
 		"i2p.router.netdb.bannedpeers": nil,
