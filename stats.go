@@ -14,7 +14,11 @@ func RateStatExact(Stat string, Period int) (float64, error) {
 	if err != nil {
 		return -1, err
 	}
-	result := retpre["Result"].(float64)
+	value, err := responseValue(retpre, "Result")
+	if err != nil {
+		return -1, err
+	}
+	result := value.(float64)
 	return result, nil
 }
 
@@ -28,7 +32,11 @@ func RateStat(Stat string, Period int) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	result := int(retpre["Result"].(float64))
+	value, err := responseValue(retpre, "Result")
+	if err != nil {
+		return -1, err
+	}
+	result := int(value.(float64))
 	return result, nil
 }
 

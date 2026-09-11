@@ -9,7 +9,11 @@ func Echo(echo string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	result := retpre["Result"].(string)
+	value, err := responseValue(retpre, "Result")
+	if err != nil {
+		return "", err
+	}
+	result := value.(string)
 	return result, nil
 }
 
@@ -35,6 +39,17 @@ func Restart() (string, error) {
 		return "", err
 	}
 	return "Restart Initiated", nil
+}
+
+func Reseed() (string, error) {
+	_, err := Call("RouterManager", map[string]interface{}{
+		"Reseed": nil,
+		"Token":  token,
+	})
+	if err != nil {
+		return "", err
+	}
+	return "Reseed Initiated", nil
 }
 
 // Shutdown initiates a graceful restart, which will occur in around 11 minutes.
@@ -70,7 +85,11 @@ func FindUpdates() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	result := retpre["FindUpdates"].(bool)
+	value, err := responseValue(retpre, "FindUpdates")
+	if err != nil {
+		return false, err
+	}
+	result := value.(bool)
 	return result, nil
 }
 

@@ -13,6 +13,10 @@ func RouterHash() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	result := retpre["i2p.router.hash"].(string)
+	value, err := responseValue(retpre, "i2p.router.hash")
+	if err != nil {
+		return "", err
+	}
+	result := value.(string)
 	return result, nil
 }

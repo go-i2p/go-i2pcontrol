@@ -9,10 +9,11 @@ func Upnp() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if retpre["i2p.router.net.upnp"] == nil {
+	value, err := responseValue(retpre, "i2p.router.net.upnp")
+	if err != nil {
 		return "Upnp Disabled", nil
 	}
-	result := retpre["i2p.router.net.upnp"].(string)
+	result := value.(string)
 
 	return result, nil
 }

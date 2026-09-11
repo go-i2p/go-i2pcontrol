@@ -11,7 +11,11 @@ func ParticipatingTunnels() (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	result := int(retpre["i2p.router.net.tunnels.participating"].(float64))
+	value, err := responseValue(retpre, "i2p.router.net.tunnels.participating")
+	if err != nil {
+		return -1, err
+	}
+	result := int(value.(float64))
 	return result, nil
 }
 
@@ -24,7 +28,11 @@ func Status() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	result := retpre["i2p.router.status"].(string)
+	value, err := responseValue(retpre, "i2p.router.status")
+	if err != nil {
+		return "", err
+	}
+	result := value.(string)
 	return result, nil
 }
 
@@ -37,7 +45,11 @@ func NetStatus() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	result := int(retpre["i2p.router.net.status"].(float64))
+	value, err := responseValue(retpre, "i2p.router.net.status")
+	if err != nil {
+		return "", err
+	}
+	result := int(value.(float64))
 	switch result {
 	case 0:
 		return "OK", nil
@@ -83,287 +95,10 @@ func Reseeding() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	result := retpre["i2p.router.netdb.isreseeding"].(bool)
-	return result, nil
-}
-
-// IncomingBW bandwidth per second
-func IncomingBW() (int, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.net.bw.inbound.1s": nil,
-		"Token":                        token,
-	})
+	value, err := responseValue(retpre, "i2p.router.netdb.isreseeding")
 	if err != nil {
-		return -1, err
+		return false, err
 	}
-	result := int(retpre["i2p.router.net.bw.inbound.1s"].(float64))
-	return result, nil
-}
-
-// OutgoingBw bandwidth per second
-func OutgoingBw() (int, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.net.bw.outbound.1s": nil,
-		"Token":                         token,
-	})
-	if err != nil {
-		return -1, err
-	}
-	result := int(retpre["i2p.router.net.bw.outbound.1s"].(float64))
-	return result, nil
-}
-
-// UpTime of the router
-func UpTime() (int64, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.uptime": nil,
-		"Token":             token,
-	})
-	if err != nil {
-		return -1, err
-	}
-	result := int64(retpre["i2p.router.uptime"].(float64))
-	return result, nil
-}
-
-// KnownPeers All the known peers
-func KnownPeers() (int, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.netdb.knownpeers": nil,
-		"Token":                       token,
-	})
-	if err != nil {
-		return -1, err
-	}
-	result := int(retpre["i2p.router.netdb.knownpeers"].(float64))
-	return result, nil
-}
-
-// ActivePeers All Active peers
-func ActivePeers() (int, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.netdb.activepeers": nil,
-		"Token":                        token,
-	})
-	if err != nil {
-		return -1, err
-	}
-
-	result := int(retpre["i2p.router.netdb.activepeers"].(float64))
-	return result, nil
-}
-
-// Version the current router version
-func Version() (string, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.version": nil,
-		"Token":              token,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	result := retpre["i2p.router.version"].(string)
-	return result, nil
-}
-
-// RouterID the current router ID
-func RouterID() (string, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.id": nil,
-		"Token":         token,
-	})
-	if err != nil {
-		return "", err
-	}
-
-	result := retpre["i2p.router.id"].(string)
-	return result, nil
-}
-
-// RouterInfo the current router ID in base64 format
-func RouterInfo() (string, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.info": nil,
-		"Token":           token,
-	})
-	if err != nil {
-		return "", err
-	}
-	result := retpre["i2p.router.info"].(string)
-	return result, nil
-}
-
-// ClockSkew the current clock skew of the router
-func ClockSkew() (int, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.clockskew": nil,
-		"Token":                token,
-	})
-	if err != nil {
-		return -1, err
-	}
-
-	result := int(retpre["i2p.router.clockskew"].(float64))
-	return result, nil
-}
-
-// InboundExploratoryTunnels gets the number of inbound exploratory tunnels
-func InboundExploratoryTunnels() (int, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.net.tunnels.exploratory.inbound": nil,
-		"Token": token,
-	})
-	if err != nil {
-		return -1, err
-	}
-
-	result := int(retpre["i2p.router.net.tunnels.exploratory.inbound"].(float64))
-	return result, nil
-}
-
-// OutboundExploratoryTunnels gets the number of outbound exploratory tunnels
-func OutboundExploratoryTunnels() (int, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.net.tunnels.exploratory.outbound": nil,
-		"Token": token,
-	})
-	if err != nil {
-		return -1, err
-	}
-
-	result := int(retpre["i2p.router.net.tunnels.exploratory.outbound"].(float64))
-	return result, nil
-}
-
-// InboundClientTunnels gets the number of inbound client tunnels
-func InboundClientTunnels() (int, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.net.tunnels.client.inbound": nil,
-		"Token":                                 token,
-	})
-	if err != nil {
-		return -1, err
-	}
-
-	result := int(retpre["i2p.router.net.tunnels.client.inbound"].(float64))
-	return result, nil
-}
-
-// OutboundClientTunnels gets the number of outbound client tunnels
-func OutboundClientTunnels() (int, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.net.tunnels.client.outbound": nil,
-		"Token":                                  token,
-	})
-	if err != nil {
-		return -1, err
-	}
-
-	result := int(retpre["i2p.router.net.tunnels.client.outbound"].(float64))
-	return result, nil
-}
-
-// KnownPeersList gets a list of known peers
-func KnownPeersList() ([]string, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.netdb.peers": nil,
-		"Token":                  token,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	resultInterface := retpre["i2p.router.netdb.peers"].([]interface{})
-	result := make([]string, len(resultInterface))
-	for i, v := range resultInterface {
-		result[i] = v.(string)
-	}
-	return result, nil
-}
-
-// ActivePeersList gets a list of active peers
-func ActivePeersList() ([]string, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.netdb.activepeers.list": nil,
-		"Token":                             token,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	resultInterface := retpre["i2p.router.netdb.activepeers.list"].([]interface{})
-	result := make([]string, len(resultInterface))
-	for i, v := range resultInterface {
-		result[i] = v.(string)
-	}
-	return result, nil
-}
-
-// ActivePeersInfo gets a list of active peers info
-func ActivePeersInfo() ([]string, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.netdb.activepeers.info": nil,
-		"Token":                             token,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	resultInterface := retpre["i2p.router.netdb.activepeers.info"].([]interface{})
-	result := make([]string, len(resultInterface))
-	for i, v := range resultInterface {
-		result[i] = v.(string)
-	}
-	return result, nil
-}
-
-// AllPeersList gets a list of all known peer hashes
-func AllPeersList() ([]string, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.netdb.peers.list": nil,
-		"Token":                       token,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	resultInterface := retpre["i2p.router.netdb.peers.list"].([]interface{})
-	result := make([]string, len(resultInterface))
-	for i, v := range resultInterface {
-		result[i] = v.(string)
-	}
-	return result, nil
-}
-
-// AllPeersInfo gets the raw base64-encoded RouterInfo blobs for all known peers
-func AllPeersInfo() ([]string, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.netdb.peers.info": nil,
-		"Token":                       token,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	resultInterface := retpre["i2p.router.netdb.peers.info"].([]interface{})
-	result := make([]string, len(resultInterface))
-	for i, v := range resultInterface {
-		result[i] = v.(string)
-	}
-	return result, nil
-}
-
-// ActivePeersStats gets detailed live stats for all active peer connections
-func ActivePeersStats() ([]interface{}, error) {
-	retpre, err := Call("RouterInfo", map[string]interface{}{
-		"i2p.router.netdb.activepeers.stats": nil,
-		"Token":                              token,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	result := retpre["i2p.router.netdb.activepeers.stats"].([]interface{})
+	result := value.(bool)
 	return result, nil
 }
